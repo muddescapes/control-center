@@ -1,7 +1,24 @@
+import "./FixMqttImport";
+import { useMqttState, useSubscription } from "mqtt-react-hooks";
 import React from "react";
 import "./App.css";
 
+const MQTT_TOPIC = "muddescapes-esp/test";
+
 function App() {
+  const { client } = useMqttState();
+  const { message, connectionStatus } = useSubscription(MQTT_TOPIC);
+  console.log(message, connectionStatus);
+
+  // message will be defined when it's receiving a message through MQTT
+  React.useEffect(() => {
+    if (message) {
+      const messageStr = message.message;
+      console.log(messageStr);
+      unpackMQTT(messageStr);
+    }
+  }, [message]);
+
   const reference = {
     var1: { options: ["true", "false"], realState: "false" },
     var2: { options: ["red", "blue"], realState: "red" },
@@ -12,8 +29,8 @@ function App() {
 
   const [vars, setVars] = React.useState({});
 
-  // currState is a dictionary that lets you lookup what the current state of each variable is
-  // setCurrState is a function you have to use to change currState
+  // tempState is a dictionary that lets you lookup what the current state of each variable is
+  // setTempState is a function you have to use to change currState
   const [tempState, setTempState] = React.useState(
     Object.fromEntries(
       Object.entries(vars).map(([name, { realState: curr }]) => [name, curr])
@@ -84,13 +101,32 @@ function App() {
   }
 
   function sayHello() {
-    alert("You clicked me!");
+    const changedNames = Object.entries(tempState)
+      .filter(([name, value]) => vars[name].realState !== value)
+      .map(([name, value]) => name);
+
+    console.log(changedNames);
+    let newMessage = "";
+
+    for (let i = 0; i < changedNames.length; i++) {
+      newMessage =
+        changedNames[i] +
+        " {" +
+        vars[changedNames[i]]["options"] +
+        "} status=" +
+        tempState[changedNames[i]];
+
+      console.log(newMessage);
+      client.publish(MQTT_TOPIC, newMessage);
+    }
+
     // send message of mqtt with modified entries of currState
   }
 
   // delete this later
   function refresh() {
     unpackMQTT(MQTTmessage);
+    console.log(tempState);
   }
 }
 

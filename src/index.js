@@ -1,13 +1,23 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from "./reportWebVitals";
+import { Connector } from "mqtt-react-hooks";
+import { v4 as uuidv4 } from "uuid";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    <Connector
+      brokerUrl="wss://mqtt.eclipseprojects.io"
+      options={{
+        path: "/mqtt",
+        clientId: `muddescapes-cc-${uuidv4()}`,
+      }}
+    >
+      <App />
+    </Connector>
   </React.StrictMode>
 );
 
