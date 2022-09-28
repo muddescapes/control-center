@@ -100,6 +100,7 @@ function App() {
     setTempStateHelper(varName, currState);
   }
 
+  // send message of mqtt with modified entries of currState
   function sayHello() {
     const changedNames = Object.entries(tempState)
       .filter(([name, value]) => vars[name].realState !== value)
@@ -110,6 +111,7 @@ function App() {
 
     for (let i = 0; i < changedNames.length; i++) {
       newMessage =
+        "override " +
         changedNames[i] +
         " {" +
         vars[changedNames[i]]["options"] +
@@ -119,8 +121,6 @@ function App() {
       console.log(newMessage);
       client.publish(MQTT_TOPIC, newMessage);
     }
-
-    // send message of mqtt with modified entries of currState
   }
 
   // delete this later
