@@ -28,6 +28,7 @@ function App() {
   const MQTTmessage = "door-status {open, closed, halfway} status=closed";
 
   const [vars, setVars] = React.useState({});
+  const [changedVars, setChangedVars] = React.useState([]);
 
   // tempState is a dictionary that lets you lookup what the current state of each variable is
   // setTempState is a function you have to use to change currState
@@ -63,7 +64,10 @@ function App() {
                       type="radio"
                       value={option}
                       checked={tempState[name] === option}
-                      onChange={() => setTempStateHelper(name, option)}
+                      onChange={() => {
+                        setTempStateHelper(name, option);
+                        setChangedVars([...changedVars, name]);
+                      }}
                     />{" "}
                     {option}
                   </React.Fragment>
@@ -91,6 +95,10 @@ function App() {
       .replace(/ /g, "")
       .split(",");
     let currState = message.split("status=").at(-1);
+
+    if (changedVars.includes(varName)) {
+      return;
+    }
 
     setVars({
       ...vars,
@@ -121,6 +129,8 @@ function App() {
       console.log(newMessage);
       client.publish(MQTT_TOPIC, newMessage);
     }
+
+    setChangedVars([]);
   }
 
   // delete this later
