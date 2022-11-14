@@ -10,7 +10,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <Connector
-      brokerUrl="wss://mqtt.eclipseprojects.io"
+      brokerUrl="ws://broker.hivemq.com:8000"
       options={{
         path: "/mqtt",
         clientId: `muddescapes-cc-${uuidv4()}`,

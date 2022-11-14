@@ -89,6 +89,11 @@ function App() {
 
   function unpackMQTT(message) {
     let varName = message.split(" ")[0];
+
+    if (varName === "set") {
+      return;
+    }
+
     let options = message
       .split("{")[1]
       .split("}")[0]
@@ -119,10 +124,10 @@ function App() {
 
     for (let i = 0; i < changedNames.length; i++) {
       newMessage =
-        "override " +
+        "set " +
         changedNames[i] +
         " {" +
-        vars[changedNames[i]]["options"] +
+        vars[changedNames[i]]["options"].join(", ") +
         "} status=" +
         tempState[changedNames[i]];
 
