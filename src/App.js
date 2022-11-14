@@ -8,7 +8,10 @@ const MQTT_TOPIC = "muddescapes-esp/test";
 function App() {
   const { client } = useMqttState();
   const { message, connectionStatus } = useSubscription(MQTT_TOPIC);
-  console.log(message, connectionStatus);
+
+  // dummy state variable to get the component to rerender every second
+  const [, setCurrTime] = React.useState(Date.now());
+  // console.log(message, connectionStatus);
 
   // message will be defined when it's receiving a message through MQTT
   React.useEffect(() => {
@@ -18,6 +21,14 @@ function App() {
       unpackMQTT(messageStr);
     }
   }, [message]);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrTime(Date.now());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  });
 
   const reference = {
     var1: { options: ["true", "false"], realState: "false" },
@@ -49,33 +60,38 @@ function App() {
       <div className="Outer-container">
         <div className="grid-container">
           {/* maps the items in vars to "name", "options" "curr" for doing for loop on it */}
-          {Object.entries(vars).map(([name, { options, realState: curr }]) => (
-            // React fragment allows us to have multiple divs in the same level (without it, you can only have one parent div)
-            <React.Fragment key={name}>
-              <div className="grid-element">{name}</div>
-              <div
-                className={
-                  tempState[name] !== curr ? "changed" : "grid-element"
-                }
-              >
-                {options.map((option) => (
-                  <React.Fragment key={option}>
-                    <input
-                      type="radio"
-                      value={option}
-                      checked={tempState[name] === option}
-                      onChange={() => {
-                        setTempStateHelper(name, option);
-                        setChangedVars([...changedVars, name]);
-                      }}
-                    />{" "}
-                    {option}
-                  </React.Fragment>
-                ))}
-              </div>
-              <div className="grid-element">{curr}</div>
-            </React.Fragment>
-          ))}
+          {Object.entries(vars).map(
+            ([name, { options, realState: curr, changedAt }]) => (
+              // React fragment allows us to have multiple divs in the same level (without it, you can only have one parent div)
+              <React.Fragment key={name}>
+                <div className="grid-element">{name}</div>
+                <div
+                  className={
+                    tempState[name] !== curr ? "changed" : "grid-element"
+                  }
+                >
+                  {options.map((option) => (
+                    <React.Fragment key={option}>
+                      <input
+                        type="radio"
+                        value={option}
+                        checked={tempState[name] === option}
+                        onChange={() => {
+                          setTempStateHelper(name, option);
+                          setChangedVars([...changedVars, name]);
+                        }}
+                      />{" "}
+                      {option}
+                    </React.Fragment>
+                  ))}
+                </div>
+                <div className="grid-element">{curr}</div>
+                <div className="grid-element">
+                  {(Date.now() - changedAt) / 1000}s ago
+                </div>
+              </React.Fragment>
+            )
+          )}
         </div>
         <div>
           <button onClick={sayHello}>SEND CHANGES</button>
@@ -107,7 +123,11 @@ function App() {
 
     setVars({
       ...vars,
-      [varName]: { options: options, realState: currState },
+      [varName]: {
+        options: options,
+        realState: currState,
+        changedAt: Date.now(),
+      },
     });
 
     setTempStateHelper(varName, currState);
