@@ -128,7 +128,7 @@ function App() {
           )}
         </div>
         <div>
-          <button onClick={sayHello}>SEND CHANGES</button>
+          <button onClick={sendChanges}>SEND CHANGES</button>
         </div>
         <div>
           <button onClick={refresh}>REFRESH</button>
@@ -138,7 +138,7 @@ function App() {
   );
 
   // send message of mqtt with modified entries of currState
-  function sayHello() {
+  function sendChanges() {
     const changedNames = Object.entries(tempState)
       .filter(([name, value]) => vars[name].realState !== value)
       .map(([name, value]) => name);
