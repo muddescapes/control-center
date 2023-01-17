@@ -1,5 +1,6 @@
 {
   "name": "control-center",
+  "homepage": "https://muddescapes.github.io/control-center",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
