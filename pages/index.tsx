@@ -91,75 +91,73 @@ export default function Home() {
   },
   []);
 
-  const handleControlMessage = React.useCallback(function (
-    topic: string,
-    message: string
-  ) {
-    const puzzleName = topic.split("/")[2];
-    const functionName = message.toString();
+  const handleControlMessage = React.useCallback(
+    function (topic: string, message: string) {
+      const puzzleName = topic.split("/")[2];
+      const functionName = message.toString();
 
-    // puzzle should exist
-    if (!puzzles.some((puzzle) => puzzle.name === puzzleName)) {
-      console.error(
-        `Received function call ${functionName} for puzzle ${puzzleName} but puzzle does not exist`
-      );
-    }
-
-    setPuzzles((puzzles) =>
-      puzzles.map((puzzle) => {
-        const newPuzzle = { ...puzzle };
-        if (newPuzzle.name === puzzleName) {
-          newPuzzle.functions.set(functionName, FunctionState.Called);
-        }
-        return newPuzzle;
-      })
-    );
-  },
-  []);
-
-  const handleDataMessage = React.useCallback(function (
-    topic: string,
-    message: string
-  ) {
-    const topicSplit = topic.split("/");
-    const puzzleName = topicSplit[2];
-    if (topicSplit.length === 4) {
-      // variable update from device
-      const variableName = topicSplit[3];
-      const variableValue = message === "1";
-
-      updateVariable(puzzleName, variableName, variableValue);
-    } else {
-      assert(topicSplit.length === 3);
-
-      if (message.startsWith("functions:")) {
-        // function list from device
-        const functionNames = message.replace(/^(functions:)/, "").split(",");
-        setFunctions(puzzleName, functionNames);
-      } else {
-        // function call completion from device
-        const functionName = message;
-
-        // puzzle should exist
-        if (!puzzles.some((puzzle) => puzzle.name === puzzleName)) {
-          console.error(
-            `Received function call completion (${functionName}) for puzzle ${puzzleName} but puzzle does not exist`
-          );
-        }
-
-        setPuzzles((puzzles) =>
-          puzzles.map((puzzle) => {
-            const newPuzzle = { ...puzzle };
-            if (newPuzzle.name === puzzleName) {
-              newPuzzle.functions.set(functionName, FunctionState.Completed);
-            }
-            return newPuzzle;
-          })
+      // puzzle should exist
+      if (!puzzles.some((puzzle) => puzzle.name === puzzleName)) {
+        console.error(
+          `Received function call ${functionName} for puzzle ${puzzleName} but puzzle does not exist`
         );
       }
-    }
-  },
-  []);
+
+      setPuzzles((puzzles) =>
+        puzzles.map((puzzle) => {
+          const newPuzzle = { ...puzzle };
+          if (newPuzzle.name === puzzleName) {
+            newPuzzle.functions.set(functionName, FunctionState.Called);
+          }
+          return newPuzzle;
+        })
+      );
+    },
+    [puzzles]
+  );
+
+  const handleDataMessage = React.useCallback(
+    function (topic: string, message: string) {
+      const topicSplit = topic.split("/");
+      const puzzleName = topicSplit[2];
+      if (topicSplit.length === 4) {
+        // variable update from device
+        const variableName = topicSplit[3];
+        const variableValue = message === "1";
+
+        updateVariable(puzzleName, variableName, variableValue);
+      } else {
+        assert(topicSplit.length === 3);
+
+        if (message.startsWith("functions:")) {
+          // function list from device
+          const functionNames = message.replace(/^(functions:)/, "").split(",");
+          setFunctions(puzzleName, functionNames);
+        } else {
+          // function call completion from device
+          const functionName = message;
+
+          // puzzle should exist
+          if (!puzzles.some((puzzle) => puzzle.name === puzzleName)) {
+            console.error(
+              `Received function call completion (${functionName}) for puzzle ${puzzleName} but puzzle does not exist`
+            );
+          }
+
+          setPuzzles((puzzles) =>
+            puzzles.map((puzzle) => {
+              const newPuzzle = { ...puzzle };
+              if (newPuzzle.name === puzzleName) {
+                newPuzzle.functions.set(functionName, FunctionState.Completed);
+              }
+              return newPuzzle;
+            })
+          );
+        }
+      }
+    },
+    [puzzles, setFunctions, updateVariable]
+  );
 
   React.useEffect(() => {
     const client = mqtt.connect("wss://broker.hivemq.com:8884", {
@@ -199,7 +197,7 @@ export default function Home() {
     return () => {
       client.end();
     };
-  }, []);
+  }, [handleControlMessage, handleDataMessage]);
 
   return (
     <>
