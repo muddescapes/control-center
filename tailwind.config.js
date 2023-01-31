@@ -6,7 +6,20 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: "#ec6e65",
+      },
+      animation: {
+        fade: "fade 5s linear forwards",
+      },
+      keyframes: {
+        fade: {
+          "0%, 75%": { opacity: 1 },
+          "100%": { opacity: 0 },
+        },
+      },
+    },
   },
   plugins: [],
-}
+};

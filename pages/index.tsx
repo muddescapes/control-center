@@ -3,6 +3,7 @@ import logo from "../images/muddescapes-logo.png";
 import mqtt from "mqtt";
 import React from "react";
 import { useResizeDetector } from "react-resize-detector";
+import Puzzle, { FunctionState, PuzzleData } from "../components/puzzle";
 
 interface Message {
   time: Date;
@@ -21,6 +22,14 @@ export default function Home() {
     height: iframeHeight,
     ref: iframeTargetRef,
   } = useResizeDetector<HTMLDivElement>();
+  const [puzzles, setPuzzles] = React.useState<PuzzleData[]>([
+    {
+      name: "Ashley's puzzle",
+      variables: new Map([["is_solved", false]]),
+      functions: new Map([["solve_puzzle", FunctionState.Idle]]),
+    },
+  ]);
+  const [client, setClient] = React.useState<mqtt.MqttClient | null>(null);
 
   const iframeScale =
     iframeWidth && iframeHeight
@@ -52,6 +61,8 @@ export default function Home() {
       ]);
     });
 
+    setClient(client);
+
     return () => {
       client.end();
     };
@@ -70,55 +81,33 @@ export default function Home() {
           <div
             className={
               "h-5 w-5 rounded-full justify-self-end " +
-              (isConnected ? "bg-green-400" : "bg-red-400")
+              (isConnected ? "bg-green-500" : "bg-red-500")
             }
           ></div>
         </div>
         {/* min-h-0 required to prevent the flexbox from growing past the height of the screen */}
         {/* https://stackoverflow.com/a/66689926 */}
         <div className="grow w-screen min-h-0 grid grid-rows-3 grid-cols-3">
-          <div className="row-span-3 col-span-2 overflow-y-scroll border-r border-black">
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
-            <p>a</p>
+          <div className="row-span-3 col-span-2 overflow-y-scroll pl-5 pt-3 border-r border-black">
+            <Puzzle
+              puzzle={puzzles[0]}
+              onFunctionChangeState={(name, state) => {
+                if (!client) return;
+
+                if (state === FunctionState.Called) {
+                  client.publish(
+                    `muddescapes/${puzzles[0].name}/functions/${name}`,
+                    "1"
+                  );
+                }
+
+                setPuzzles((puzzles) => {
+                  const newPuzzles = [...puzzles];
+                  newPuzzles[0].functions.set(name, state);
+                  return newPuzzles;
+                });
+              }}
+            />
           </div>
           <div className="row-span-2 border-b border-black font-mono overflow-y-scroll">
             {messages.map((message) => (
