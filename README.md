@@ -1,33 +1,46 @@
-# Deploying to GitHub Pages
+# control-center
 
-This example supports deloying a static Next.js application (using `next export`) to GitHub Pages.
+A web application used to manage puzzles within an escape room.
+View the [live version](https://muddescapes.github.io/control-center/).
 
-The `out` directory should not be ignored by version control.
+Automatically deploys to GitHub Pages on push to main. Built using NextJS and
+Tailwind.
 
-## How to use
+## How does it work?
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init), [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/), or [pnpm](https://pnpm.io) to bootstrap the example:
+The control center communicates with the ESP-32s via MQTT. The topics are
+structured as follows:
 
-```bash
-npx create-next-app --example github-pages nextjs-github-pages
-# or
-yarn create next-app --example github-pages nextjs-github-pages
-# or
-pnpm create next-app --example github-pages nextjs-github-pages
-```
+- `muddescapes/` - root topic
+  - `data/` - communication from ESP-32 to control center
+    - `<puzzle name>/` - topic for a specific puzzle
+      - `<variable>` - variable state changes
+  - `control/` - communication from control center to ESP-32
+    - `<puzzle name>/` - topic for a specific puzzle
 
-### Deploy to GitHub Pages
+1. Upon first connecting, the control center sends a message to `muddescapes/`.
+   The ESP-32s will respond with their current state, which includes their
+   available functions and current variable states.
+2. Available states are sent to `muddescapes/data/<puzzle name>`.
+   - Format: `functions:<function1>,<function2>,...`
+3. Variable state changes are sent to
+   `muddescapes/data/<puzzle name>/<variable name>`.
+   - Format: 1 for true, 0 for false
+   - Note: only boolean variables are supported.
+4. To call a function, the control center sends a message to
+   `muddescapes/control/<puzzle name>`.
+   - Format: `<function name>`
+5. When the ESP-32 executes a function, it will send a message to
+   `muddescapes/data/<puzzle name>`.
+   - Format: `<function name>`
+   - This allows the control center to update the UI to reflect that the
+     function was successfully executed.
 
-1.  Create a new public GitHub repository.
-1.  Edit `next.config.js` to match your GitHub repository name.
-1.  Push the starter code to the `main` branch.
-1.  Run the `deploy` script (e.g. `npm run deploy`) to create the `gh-pages` branch.
-1.  On GitHub, go to **Settings** > **Pages** > **Branch**, and choose `gh-pages` as the branch with the `/root` folder. Hit **Save**.
-1.  Make a change.
-1.  Run the `deploy` script again to push the changes to GitHub Pages.
+## How do I add a new puzzle?
 
-Congratulations! You should have a URL like:
+See [libmuddescapes](https://github.com/muddescapes/libmuddescapes) for the
+PlatformIO library used on the ESP-32 side.
 
-```bash
-https://<github-user-name>.github.io/<github-project-name>/
-```
+## Example
+
+![Example](https://i.imgur.com/kUCC7is.png)
