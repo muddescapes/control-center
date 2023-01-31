@@ -16,7 +16,7 @@ export interface PuzzleData {
 
 function Variable({ name, value }: { name: string; value: boolean }) {
   return (
-    <span className="p-2 bg-gray-200 rounded-md">
+    <span className="mx-1 p-2 bg-gray-200 rounded-md">
       <span>{name}</span>
       <span
         className={
@@ -61,7 +61,7 @@ function Function({
 
   return (
     <button
-      className="relative p-2 bg-blue-500 rounded-xl text-white transition hover:bg-blue-600"
+      className="relative mx-1 p-2 bg-blue-500 rounded-xl text-white transition hover:bg-blue-600"
       onClick={() => onFunctionChangeState(name, FunctionState.Called)}
     >
       {name}
