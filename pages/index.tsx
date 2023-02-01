@@ -26,6 +26,9 @@ export default function Home() {
   const [puzzles, setPuzzles] = React.useState<PuzzleData[]>([]);
   const [client, setClient] = React.useState<mqtt.MqttClient | null>(null);
 
+  // NOTE: these callbacks must not depend on puzzles, or else
+  // they will cause the MQTT client to be disconnected and reconnected
+  // every time the puzzles state changes (potentially missing messages)
   const updateVariable = React.useCallback(function (
     puzzleName: string,
     variableName: string,
@@ -91,11 +94,14 @@ export default function Home() {
   },
   []);
 
-  const handleControlMessage = React.useCallback(
-    function (topic: string, message: string) {
-      const puzzleName = topic.split("/")[2];
-      const functionName = message.toString();
+  const handleControlMessage = React.useCallback(function (
+    topic: string,
+    message: string
+  ) {
+    const puzzleName = topic.split("/")[2];
+    const functionName = message.toString();
 
+    setPuzzles((puzzles) => {
       // puzzle should exist
       if (!puzzles.some((puzzle) => puzzle.name === puzzleName)) {
         console.error(
@@ -103,18 +109,16 @@ export default function Home() {
         );
       }
 
-      setPuzzles((puzzles) =>
-        puzzles.map((puzzle) => {
-          const newPuzzle = { ...puzzle };
-          if (newPuzzle.name === puzzleName) {
-            newPuzzle.functions.set(functionName, FunctionState.Called);
-          }
-          return newPuzzle;
-        })
-      );
-    },
-    [puzzles]
-  );
+      return puzzles.map((puzzle) => {
+        const newPuzzle = { ...puzzle };
+        if (newPuzzle.name === puzzleName) {
+          newPuzzle.functions.set(functionName, FunctionState.Called);
+        }
+        return newPuzzle;
+      });
+    });
+  },
+  []);
 
   const handleDataMessage = React.useCallback(
     function (topic: string, message: string) {
@@ -137,26 +141,26 @@ export default function Home() {
           // function call completion from device
           const functionName = message;
 
-          // puzzle should exist
-          if (!puzzles.some((puzzle) => puzzle.name === puzzleName)) {
-            console.error(
-              `Received function call completion (${functionName}) for puzzle ${puzzleName} but puzzle does not exist`
-            );
-          }
+          setPuzzles((puzzles) => {
+            // puzzle should exist
+            if (!puzzles.some((puzzle) => puzzle.name === puzzleName)) {
+              console.error(
+                `Received function call completion (${functionName}) for puzzle ${puzzleName} but puzzle does not exist`
+              );
+            }
 
-          setPuzzles((puzzles) =>
-            puzzles.map((puzzle) => {
+            return puzzles.map((puzzle) => {
               const newPuzzle = { ...puzzle };
               if (newPuzzle.name === puzzleName) {
                 newPuzzle.functions.set(functionName, FunctionState.Completed);
               }
               return newPuzzle;
-            })
-          );
+            });
+          });
         }
       }
     },
-    [puzzles, setFunctions, updateVariable]
+    [setFunctions, updateVariable]
   );
 
   React.useEffect(() => {
@@ -168,11 +172,11 @@ export default function Home() {
       console.debug("connected");
       setIsConnected(true);
 
-      client.subscribe("muddescapes/control/+"); // for function calls from other instances of control-center
-      client.subscribe("muddescapes/data/+"); // for function list from device and called functions
-      client.subscribe("muddescapes/data/+/+"); // for variable updates from device
+      client.subscribe("muddescapes/control/+", { qos: 2 }); // for function calls from other instances of control-center
+      client.subscribe("muddescapes/data/+", { qos: 2 }); // for function list from device and called functions
+      client.subscribe("muddescapes/data/+/+", { qos: 2 }); // for variable updates from device
 
-      client.publish("muddescapes/", "");
+      client.publish("muddescapes", "", { qos: 1 });
     });
 
     client.on("message", (topic, message) => {
