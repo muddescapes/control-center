@@ -8,8 +8,12 @@ Tailwind.
 
 ## How does it work?
 
-The control center communicates with the ESP-32s via MQTT. The topics are
-structured as follows:
+The control center communicates with the ESP-32s via MQTT. MQTT is a lightweight
+publish-subscribe protocol that is commonly used for IoT applications. Devices
+can publish messages to topics, and other devices can subscribe to those topics
+to receive messages.
+
+The topics are structured as follows:
 
 - `muddescapes/` - root topic
   - `data/` - communication from ESP-32 to control center
