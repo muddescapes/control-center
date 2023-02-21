@@ -41,8 +41,8 @@ export default function Home() {
           const newPuzzle = { ...puzzle };
           if (newPuzzle.name === puzzleName) {
             newPuzzle.variables.set(variableName, value);
+            newPuzzle.lastUpdatedAt = new Date();
           }
-          newPuzzle.lastUpdatedAt = new Date();
           return newPuzzle;
         });
       }
@@ -77,8 +77,8 @@ export default function Home() {
                 FunctionState.Idle,
               ])
             );
+            newPuzzle.lastUpdatedAt = new Date();
           }
-          newPuzzle.lastUpdatedAt = new Date();
           return newPuzzle;
         });
       }
@@ -117,8 +117,8 @@ export default function Home() {
         const newPuzzle = { ...puzzle };
         if (newPuzzle.name === puzzleName) {
           newPuzzle.functions.set(functionName, FunctionState.Called);
+          newPuzzle.lastUpdatedAt = new Date();
         }
-        newPuzzle.lastUpdatedAt = new Date();
         return newPuzzle;
       });
     });
