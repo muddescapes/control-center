@@ -42,6 +42,7 @@ export default function Home() {
           if (newPuzzle.name === puzzleName) {
             newPuzzle.variables.set(variableName, value);
           }
+          newPuzzle.lastUpdatedAt = new Date();
           return newPuzzle;
         });
       }
@@ -53,6 +54,7 @@ export default function Home() {
           name: puzzleName,
           variables: new Map([[variableName, value]]),
           functions: new Map(),
+          lastUpdatedAt: new Date(),
         },
       ];
     });
@@ -76,6 +78,7 @@ export default function Home() {
               ])
             );
           }
+          newPuzzle.lastUpdatedAt = new Date();
           return newPuzzle;
         });
       }
@@ -88,6 +91,7 @@ export default function Home() {
           functions: new Map(
             functions.map((functionName) => [functionName, FunctionState.Idle])
           ),
+          lastUpdatedAt: new Date(),
         },
       ];
     });
@@ -114,6 +118,7 @@ export default function Home() {
         if (newPuzzle.name === puzzleName) {
           newPuzzle.functions.set(functionName, FunctionState.Called);
         }
+        newPuzzle.lastUpdatedAt = new Date();
         return newPuzzle;
       });
     });

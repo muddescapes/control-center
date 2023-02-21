@@ -1,6 +1,7 @@
 import ellipsis from "../images/ellipsis.svg";
 import checkmark from "../images/checkmark.svg";
 import Image from "next/image";
+import TimeAgo from "react-timeago";
 
 export enum FunctionState {
   Idle,
@@ -12,6 +13,7 @@ export interface PuzzleData {
   name: string;
   variables: Map<string, boolean>;
   functions: Map<string, FunctionState>;
+  lastUpdatedAt: Date;
 }
 
 function Variable({ name, value }: { name: string; value: boolean }) {
@@ -79,7 +81,11 @@ export default function Puzzle({
 }) {
   return (
     <div>
-      <h1 className="text-3xl text-primary">{puzzle.name}</h1>
+      <span className="text-3xl text-primary">{puzzle.name}</span>
+      <TimeAgo
+        className="text-sm ml-2 text-gray-500"
+        date={puzzle.lastUpdatedAt}
+      />
       <div>
         <h2 className="my-2 text-xl">Variables</h2>
         {Array.from(puzzle.variables.entries()).map(([name, value]) => (
