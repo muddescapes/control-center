@@ -260,6 +260,7 @@ export default function Home() {
                   {message.time.toLocaleString("en-US", {
                     hour: "numeric",
                     minute: "numeric",
+                    second: "numeric",
                     hour12: true,
                   })}{" "}
                   {message.topic}:
