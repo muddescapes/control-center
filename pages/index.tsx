@@ -283,7 +283,7 @@ export default function Home() {
                 width: `${IFRAME_SRC_WIDTH}px`,
                 height: `${IFRAME_SRC_HEIGHT}px`,
               }}
-              src="https://muddescapes-timer.web.app/"
+              src="https://muddescapes-timer.glitch.me/"
             ></iframe>
           </div>
         </div>
